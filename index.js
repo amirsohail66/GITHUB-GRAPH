@@ -5,25 +5,23 @@ const moment = require("moment");
 const random = require("random");
 
 // Change the working directory to where your local repository is located
-const git = simpleGit("/Users/rohitaggarwal/Desktop/test/GitHub_Graph");
+const git = simpleGit("../GitHub_Graph");
 
-const makeCommit = (n) => {
+const makeCommit = async (n) => {
   if (n === 0) {
-    // Push changes to the remote repository
-    git.push(["-u", "origin", "master"], (err, result) => {
-      if (err) {
-        console.error("Error pushing to remote:", err);
-      } else {
-        console.log("Pushed changes to remote repository");
-      }
-    });
+    try {
+      await git.push("origin", "master");
+      console.log("All commits pushed to remote repository");
+    } catch (err) {
+      console.error("Error pushing to remote:", err);
+    }
     return;
   }
 
   const x = random.int(0, 54);
   const y = random.int(0, 6);
   const DATE = moment()
-    .subtract(0, "y")
+    .subtract(1, "y")
     .add(1, "d")
     .add(x, "w")
     .add(y, "d")
@@ -34,19 +32,15 @@ const makeCommit = (n) => {
   };
   console.log(DATE);
 
-  jsonfile.writeFile(FILE_PATH, data, () => {
-    git
-      .add([FILE_PATH])
-      .commit(DATE, { "--date": DATE })
-      .push(["-u", "origin", "origin"], (err, result) => {
-        if (err) {
-          console.error("Error pushing to remote:", err);
-        } else {
-          console.log("Pushed changes to remote repository");
-          makeCommit(--n);
-        }
-      });
-  });
+  try {
+    await jsonfile.writeFile(FILE_PATH, data);
+    await git.add([FILE_PATH]);
+    await git.commit(DATE, { "--date": DATE });
+    console.log(`Commit ${121 - n} created`);
+    await makeCommit(--n);
+  } catch (err) {
+    console.error("Error creating commit:", err);
+  }
 };
 
 makeCommit(120);
